@@ -21,6 +21,7 @@ package net.sf.mzmine.main;
 import net.sf.mzmine.modules.batchmode.BatchModeModule;
 import net.sf.mzmine.modules.masslistmethods.ADAPchromatogrambuilder.ADAPChromatogramBuilderModule;
 import net.sf.mzmine.modules.masslistmethods.chromatogrambuilder.ChromatogramBuilderModule;
+import net.sf.mzmine.modules.masslistmethods.exporter.MassListExportModule;
 import net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter.ShoulderPeaksFilterModule;
 import net.sf.mzmine.modules.peaklistmethods.alignment.join.JoinAlignerModule;
 import net.sf.mzmine.modules.peaklistmethods.alignment.ransac.RansacAlignerModule;
@@ -83,7 +84,6 @@ import net.sf.mzmine.modules.rawdatamethods.filtering.cropper.CropFilterModule;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFiltersModule;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scansmoothing.ScanSmoothingModule;
 import net.sf.mzmine.modules.rawdatamethods.orderdatafiles.OrderDataFilesModule;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.adap3d.ADAP3DModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.gridmass.GridMassModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetectionModule;
@@ -143,7 +143,7 @@ public class MZmineModulesList {
       CSVExportModule.class, MetaboAnalystExportModule.class, MzTabExportModule.class,
       SQLExportModule.class, XMLExportModule.class, CasmiImportModule.class,
       MzTabImportModule.class, XMLImportModule.class, MSPExportModule.class, MGFExportModule.class,
-      GNPSExportModule.class, SiriusExportModule.class,
+      GNPSExportModule.class, SiriusExportModule.class, MassListExportModule.class,
 
       // Gap filling
       PeakFinderModule.class, SameRangeGapFillerModule.class,

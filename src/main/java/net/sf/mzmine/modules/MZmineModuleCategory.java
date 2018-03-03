@@ -40,7 +40,8 @@ public enum MZmineModuleCategory {
     VISUALIZATIONRAWDATA("Visualization"), //
     VISUALIZATIONPEAKLIST("Visualization peak list"), //
     DATAANALYSIS("Data analysis"), //
-    HELPSYSTEM("Help");
+    HELPSYSTEM("Help"),
+    MASSLISTEXPORT("Single Mass List export");
 
     private final String name;
 
