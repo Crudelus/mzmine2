@@ -21,7 +21,9 @@ public class MassListExportModule implements MZmineProcessingModule {
 
     @Nonnull
     @Override
-    public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+    public ExitCode runModule(@Nonnull MZmineProject project,
+                              @Nonnull ParameterSet parameters,
+                              @Nonnull Collection<Task> tasks) {
         RawDataFile[] matchingRawDataFiles = parameters
                 .getParameter(MassListExporterParameters.dataFiles)
                 .getValue()

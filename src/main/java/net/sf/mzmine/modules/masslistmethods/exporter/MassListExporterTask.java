@@ -23,8 +23,6 @@ import java.util.Objects;
 import static java.nio.file.StandardOpenOption.CREATE;
 
 public class MassListExporterTask extends AbstractTask {
-    public static final String LINE_SEPARATOR = System.lineSeparator();
-    public static final Charset CHARSET = Charset.defaultCharset();
 
 
     private Logger LOG = LoggerFactory.getLogger(MassListExporterTask.class);
@@ -43,7 +41,8 @@ public class MassListExporterTask extends AbstractTask {
         this.massListName = parameterSet.getParameter(MassListExporterParameters.massList).getValue();
         scanSelection = parameterSet.getParameter(MassListExporterParameters.scanSelection).getValue();
         File targetDirectory = parameterSet.getParameter(MassListExporterParameters.targetDirectory).getValue();
-        String name = dataFile.getName().replace(".", "_");
+        int indexOfFileEnding = dataFile.getName().lastIndexOf(".");
+        String name = dataFile.getName().substring(0 , indexOfFileEnding);
         path = Paths.get(targetDirectory.getPath());
         path = path.resolve(name);
     }
@@ -73,22 +72,17 @@ public class MassListExporterTask extends AbstractTask {
             MassList massList = currentScan.
                     getMassList(massListName);
             Objects.requireNonNull(massList);
-            Path target = path.resolve(String.valueOf(currentScan.getScanNumber())).toAbsolutePath();
-            if (Files.exists(target)) {
-                try {
-                    Files.delete(target);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            try (BufferedWriter out = Files.newBufferedWriter(target,
-                    CHARSET,
-                    CREATE)) {
-                for (DataPoint dataPoint : massList.getDataPoints()) {
-                    out.write(dataPoint.getMZ() + " : " + dataPoint.getIntensity() + LINE_SEPARATOR);
-                }
-            } catch (IOException x) {
-                System.err.format("IOException: %s%n", x);
+            DataPointFileWriter fileExporter = new TSDataPointFileWriter(currentScan, path, massList);
+            try {
+                fileExporter.write();
+            } catch (IOException e) {
+                e.printStackTrace();
+                setStatus(TaskStatus.ERROR);
+                final String msg = "Could not access file for scan #"
+                        + currentScan.getScanNumber() + "\n"
+                        + e.getLocalizedMessage();
+                setErrorMessage(msg);
+                return;
             }
             processedScans++;
         }

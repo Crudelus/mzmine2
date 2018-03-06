@@ -19,7 +19,7 @@ public class MassListExporterParameters extends SimpleParameterSet {
     public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
             new ScanSelection(1));
 
-    public static final MassListParameter massList = new MassListParameter();
+    public static final MassListParameter massList = new MassListParameter("masses");
 
 
     public MassListExporterParameters() {

@@ -35,6 +35,12 @@ public class MassListParameter implements
 	this.description = "Please select a mass list name";
     }
 
+    public MassListParameter(String defaultValue) {
+        this.name = "Mass list";
+        this.description = "Please select a mass list name";
+        this.value = defaultValue;
+    }
+
     /**
      * @see net.sf.mzmine.data.Parameter#getName()
      */
