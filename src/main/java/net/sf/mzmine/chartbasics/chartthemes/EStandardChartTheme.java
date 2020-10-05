@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,7 +24,12 @@ import java.awt.Paint;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.StandardChartTheme;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.category.StandardBarPainter;
+import org.jfree.chart.renderer.xy.StandardXYBarPainter;
+import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.PaintScaleLegend;
+import org.jfree.chart.ui.RectangleEdge;
 import net.sf.mzmine.chartbasics.chartthemes.ChartThemeFactory.THEME;
 
 
@@ -58,6 +63,9 @@ public class EStandardChartTheme extends StandardChartTheme {
   public EStandardChartTheme(THEME themeID, String name) {
     super(name);
     this.themeID = themeID;
+
+    setBarPainter(new StandardBarPainter());
+    setXYBarPainter(new StandardXYBarPainter());
 
     // in theme
     setAntiAliased(false);
@@ -101,7 +109,6 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   @Override
   public void apply(JFreeChart chart) {
-    // TODO Auto-generated method stub
     super.apply(chart);
     //
     chart.getXYPlot().setDomainGridlinesVisible(showXGrid);
@@ -140,6 +147,9 @@ public class EStandardChartTheme extends StandardChartTheme {
     chart.setAntiAlias(isAntiAliased());
     chart.getTitle().setVisible(isShowTitle());
     chart.getPlot().setBackgroundAlpha(isNoBackground() ? 0 : 1);
+
+    // make the legend's colours change, too, if the theme changed them.
+    fixLegend(chart);
   }
 
   public boolean isNoBackground() {
@@ -154,6 +164,25 @@ public class EStandardChartTheme extends StandardChartTheme {
         new Color(cchart.getRed(), cchart.getGreen(), cchart.getBlue(), state ? 0 : 255));
     this.setLegendBackgroundPaint(
         new Color(cchart.getRed(), cchart.getGreen(), cchart.getBlue(), state ? 0 : 255));
+  }
+
+  /**
+   * Fixes the legend item's colour after the colours of the datasets/series in the plot were
+   * changed.
+   * 
+   * @param chart The chart.
+   */
+  public static void fixLegend(JFreeChart chart) {
+    XYPlot plot = chart.getXYPlot();
+    LegendTitle oldLegend = chart.getLegend();
+    RectangleEdge pos = oldLegend.getPosition();
+    chart.removeLegend();
+    
+    LegendTitle newLegend = new LegendTitle(plot);
+    newLegend.setPosition(pos);
+    newLegend.setItemFont(oldLegend.getItemFont());
+    chart.addLegend(newLegend);
+    newLegend.setVisible(oldLegend.isVisible());
   }
 
   // GETTERS AND SETTERS
@@ -237,7 +266,7 @@ public class EStandardChartTheme extends StandardChartTheme {
     this.masterFontColor = masterFontColor;
   }
 
-  public void getShowSubtitles(boolean subtitleVisible) {
+  public void setShowSubtitles(boolean subtitleVisible) {
     this.subtitleVisible = subtitleVisible;
   }
 

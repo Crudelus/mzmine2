@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2019 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -38,21 +38,22 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.orderpeaklists.OrderPeakListsModule;
-import net.sf.mzmine.modules.peaklistmethods.orderpeaklists.OrderPeakListsParameters;
-import net.sf.mzmine.modules.rawdatamethods.orderdatafiles.OrderDataFilesModule;
-import net.sf.mzmine.modules.rawdatamethods.orderdatafiles.OrderDataFilesParameters;
+import net.sf.mzmine.modules.peaklistmethods.sortpeaklists.SortPeakListsModule;
+import net.sf.mzmine.modules.peaklistmethods.sortpeaklists.SortPeakListsParameters;
+import net.sf.mzmine.modules.rawdatamethods.exportscans.ExportScansModule;
 import net.sf.mzmine.modules.rawdatamethods.rawdataexport.RawDataExportModule;
+import net.sf.mzmine.modules.rawdatamethods.sortdatafiles.SortDataFilesModule;
+import net.sf.mzmine.modules.rawdatamethods.sortdatafiles.SortDataFilesParameters;
+import net.sf.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizerModule;
-import net.sf.mzmine.modules.visualization.msms.MsMsVisualizerModule;
 import net.sf.mzmine.modules.visualization.peaklisttable.PeakListTableModule;
 import net.sf.mzmine.modules.visualization.peaksummary.PeakSummaryVisualizerModule;
 import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
-import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
-import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerParameters;
-import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
-import net.sf.mzmine.modules.visualization.spectra.datasets.MassListDataSet;
-import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
+import net.sf.mzmine.modules.visualization.spectra.msms.MsMsVisualizerModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -88,11 +89,14 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
     GUIUtils.addMenuItem(dataFilePopupMenu, "Sort alphabetically", this, "SORT_FILES");
     GUIUtils.addMenuItem(dataFilePopupMenu, "Remove file extension", this, "REMOVE_EXTENSION");
     GUIUtils.addMenuItem(dataFilePopupMenu, "Export file", this, "EXPORT_FILE");
+    GUIUtils.addMenuItem(dataFilePopupMenu, "Rename file", this, "RENAME_FILE");
     GUIUtils.addMenuItem(dataFilePopupMenu, "Remove file", this, "REMOVE_FILE");
 
     scanPopupMenu = new JPopupMenu();
 
     GUIUtils.addMenuItem(scanPopupMenu, "Show scan", this, "SHOW_SCAN");
+
+    GUIUtils.addMenuItem(scanPopupMenu, "Export scan", this, "EXPORT_SCAN");
 
     massListPopupMenu = new JPopupMenu();
 
@@ -104,10 +108,11 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
 
     peakListPopupMenu = new JPopupMenu();
 
-    GUIUtils.addMenuItem(peakListPopupMenu, "Show peak list table", this, "SHOW_PEAKLIST_TABLES");
-    GUIUtils.addMenuItem(peakListPopupMenu, "Show peak list info", this, "SHOW_PEAKLIST_INFO");
+    GUIUtils.addMenuItem(peakListPopupMenu, "Show feature list table", this, "SHOW_PEAKLIST_TABLES");
+    GUIUtils.addMenuItem(peakListPopupMenu, "Show feature list info", this, "SHOW_PEAKLIST_INFO");
     GUIUtils.addMenuItem(peakListPopupMenu, "Show scatter plot", this, "SHOW_SCATTER_PLOT");
     GUIUtils.addMenuItem(peakListPopupMenu, "Sort alphabetically", this, "SORT_PEAKLISTS");
+    GUIUtils.addMenuItem(peakListPopupMenu, "Rename", this, "RENAME_FEATURELIST");
     GUIUtils.addMenuItem(peakListPopupMenu, "Remove", this, "REMOVE_PEAKLIST");
 
     peakListRowPopupMenu = new JPopupMenu();
@@ -116,6 +121,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
 
   }
 
+  @Override
   public void actionPerformed(ActionEvent e) {
 
     String command = e.getActionCommand();
@@ -159,17 +165,17 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
       RawDataFile[] selectedFiles = tree.getSelectedObjects(RawDataFile.class);
       if (selectedFiles.length == 0)
         return;
-      ThreeDVisualizerModule.setupNew3DVisualizer(selectedFiles[0]);
+      Fx3DVisualizerModule.setupNew3DVisualizer(selectedFiles[0]);
     }
 
     if (command.equals("SORT_FILES")) {
       // save current selection
       TreePath savedSelection[] = tree.getSelectionPaths();
       RawDataFile selectedFiles[] = tree.getSelectedObjects(RawDataFile.class);
-      OrderDataFilesModule module = MZmineCore.getModuleInstance(OrderDataFilesModule.class);
+      SortDataFilesModule module = MZmineCore.getModuleInstance(SortDataFilesModule.class);
       ParameterSet params =
-          MZmineCore.getConfiguration().getModuleParameters(OrderDataFilesModule.class);
-      params.getParameter(OrderDataFilesParameters.dataFiles)
+          MZmineCore.getConfiguration().getModuleParameters(SortDataFilesModule.class);
+      params.getParameter(SortDataFilesParameters.dataFiles)
           .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles);
       module.runModule(MZmineCore.getProjectManager().getCurrentProject(), params,
           new ArrayList<Task>());
@@ -199,6 +205,13 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
       }
     }
 
+    if (command.equals("RENAME_FILE")) {
+      TreePath path = tree.getSelectionPath();
+      if (path == null)
+        return;
+      else
+        tree.startEditingAtPath(path);
+    }
 
     if (command.equals("REMOVE_FILE")) {
       RawDataFile[] selectedFiles = tree.getSelectedObjects(RawDataFile.class);
@@ -207,7 +220,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
         for (PeakList peakList : allPeakLists) {
           if (peakList.hasRawDataFile(file)) {
             String msg = "Cannot remove file " + file.getName()
-                + ", because it is present in the peak list " + peakList.getName();
+                + ", because it is present in the feature list " + peakList.getName();
             MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
                 msg);
             return;
@@ -224,6 +237,11 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
       for (Scan scan : selectedScans) {
         SpectraVisualizerModule.showNewSpectrumWindow(scan.getDataFile(), scan.getScanNumber());
       }
+    }
+
+    if (command.equals("EXPORT_SCAN")) {
+      Scan selectedScans[] = tree.getSelectedObjects(Scan.class);
+      ExportScansModule.showSetupDialog(selectedScans);
     }
 
     if (command.equals("SHOW_MASSLIST")) {
@@ -262,7 +280,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
       }
     }
 
-    // Actions for peak lists
+    // Actions for feature lists
 
     if (command.equals("SHOW_PEAKLIST_TABLES")) {
       PeakList[] selectedPeakLists = tree.getSelectedObjects(PeakList.class);
@@ -289,15 +307,23 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
       // save current selection
       TreePath savedSelection[] = tree.getSelectionPaths();
       PeakList selectedPeakLists[] = tree.getSelectedObjects(PeakList.class);
-      OrderPeakListsModule module = MZmineCore.getModuleInstance(OrderPeakListsModule.class);
+      SortPeakListsModule module = MZmineCore.getModuleInstance(SortPeakListsModule.class);
       ParameterSet params =
-          MZmineCore.getConfiguration().getModuleParameters(OrderPeakListsModule.class);
-      params.getParameter(OrderPeakListsParameters.peakLists)
+          MZmineCore.getConfiguration().getModuleParameters(SortPeakListsModule.class);
+      params.getParameter(SortPeakListsParameters.peakLists)
           .setValue(PeakListsSelectionType.SPECIFIC_PEAKLISTS, selectedPeakLists);
       module.runModule(MZmineCore.getProjectManager().getCurrentProject(), params,
           new ArrayList<Task>());
       // restore selection
       tree.setSelectionPaths(savedSelection);
+    }
+
+    if (command.equals("RENAME_FEATURELIST")) {
+      TreePath path = tree.getSelectionPath();
+      if (path == null)
+        return;
+      else
+        tree.startEditingAtPath(path);
     }
 
     if (command.equals("REMOVE_PEAKLIST")) {
@@ -306,7 +332,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
         MZmineCore.getProjectManager().getCurrentProject().removePeakList(peakList);
     }
 
-    // Actions for peak list rows
+    // Actions for feature list rows
 
     if (command.equals("SHOW_PEAK_SUMMARY")) {
       PeakListRow[] selectedRows = tree.getSelectedObjects(PeakListRow.class);
@@ -317,6 +343,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
 
   }
 
+  @Override
   public void mouseClicked(MouseEvent e) {
 
     if (e.isPopupTrigger())
@@ -327,11 +354,13 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
 
   }
 
+  @Override
   public void mousePressed(MouseEvent e) {
     if (e.isPopupTrigger())
       handlePopupTriggerEvent(e);
   }
 
+  @Override
   public void mouseReleased(MouseEvent e) {
     if (e.isPopupTrigger())
       handlePopupTriggerEvent(e);

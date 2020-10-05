@@ -1,22 +1,23 @@
-/* 
+/*
  * Copyright (C) 2016 Du-Lab Team <dulab.binf@gmail.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along with this program; if
+ * not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ * 02111-1307, USA.
  */
 package net.sf.mzmine.util.adap;
 
+import com.google.common.collect.Range;
+import dulab.adap.datamodel.BetterPeak;
+import dulab.adap.datamodel.Chromatogram;
 import dulab.adap.datamodel.Component;
 import dulab.adap.datamodel.Peak;
 import dulab.adap.datamodel.PeakInfo;
@@ -25,9 +26,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TreeMap;
+import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
@@ -35,178 +38,104 @@ import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.impl.SimpleFeature;
 
 /**
  *
  * @author aleksandrsmirnov
  */
 public class ADAPInterface {
-    
-    public static Component getComponent(final PeakListRow row) 
-    {   
-        if (row.getNumberOfPeaks() == 0)
-            throw new IllegalArgumentException("No peaks found");
-        
-        NavigableMap <Double, Double> spectrum = new TreeMap <> ();
-        
-        // Read Spectrum information
-        IsotopePattern ip = row.getBestIsotopePattern();
-        if (ip != null)
-        {
-            for (DataPoint dataPoint : ip.getDataPoints())
-                spectrum.put(dataPoint.getMZ(), dataPoint.getIntensity());
-        }
-        
-        // Read Chromatogram
-        final Feature peak = row.getBestPeak();
-        final RawDataFile dataFile = peak.getDataFile();
-        
-        NavigableMap <Double, Double> chromatogram = new TreeMap <> ();
-        
-        for (final int scan : peak.getScanNumbers()) {
-            final DataPoint dataPoint = peak.getDataPoint(scan);
-            if (dataPoint != null)
-                chromatogram.put(dataFile.getScan(scan).getRetentionTime(), 
-                        dataPoint.getIntensity());
-        }
-        
-        return new Component(null, 
-                new Peak(chromatogram, new PeakInfo()
-                        .mzValue(peak.getMZ())
-                        .peakID(row.getID())),
-                spectrum, null);
+
+  public static Component getComponent(final PeakListRow row) {
+    if (row.getNumberOfPeaks() == 0)
+      throw new IllegalArgumentException("No peaks found");
+
+    NavigableMap<Double, Double> spectrum = new TreeMap<>();
+
+    // Read Spectrum information
+    IsotopePattern ip = row.getBestIsotopePattern();
+    if (ip != null) {
+      for (DataPoint dataPoint : ip.getDataPoints())
+        spectrum.put(dataPoint.getMZ(), dataPoint.getIntensity());
     }
-    
-    public static List <Component> getComponents(final PeakList peakList)
-    {
-        List <Component> result = new ArrayList <> (peakList.getNumberOfRows());
-        
-        for (final PeakListRow row : peakList.getRows())
-            result.add(getComponent(row));
-        
-        return result;
+
+    // Read Chromatogram
+    final Feature peak = row.getBestPeak();
+    final RawDataFile dataFile = peak.getDataFile();
+
+    NavigableMap<Double, Double> chromatogram = new TreeMap<>();
+
+    for (final int scan : peak.getScanNumbers()) {
+      final DataPoint dataPoint = peak.getDataPoint(scan);
+      if (dataPoint != null)
+        chromatogram.put(dataFile.getScan(scan).getRetentionTime(), dataPoint.getIntensity());
     }
-    
-    public static double[] getIntensityVector(RawDataFile dataFile)
-    {
-        Set <Double> setMZValues = new HashSet<> ();
-        Map <Integer, Map <Double, Double>> data = new HashMap <> ();
 
-        final int[] scanNumbers = dataFile.getScanNumbers();
-        final int scanCount = scanNumbers.length;
+    return new Component(null,
+        new Peak(chromatogram, new PeakInfo().mzValue(peak.getMZ()).peakID(row.getID())), spectrum,
+        null);
+  }
 
-        for (final int scanNumber : scanNumbers) {
+  @Nonnull
+  public static Feature peakToFeature(@Nonnull RawDataFile file, @Nonnull BetterPeak peak) {
 
-            data.put(scanNumber, new HashMap <Double, Double> ());
-            final Scan scan = dataFile.getScan(scanNumber);
+    Chromatogram chromatogram = peak.chromatogram;
 
-            for (final DataPoint p : scan.getDataPoints()) 
-            {
-                final double mz = p.getMZ();
-                data.get(scanNumber).put(mz, p.getIntensity());
-                setMZValues.add(mz);
-            }
-        }
-
-        List <Double> sortedMZValues = new ArrayList <> (setMZValues);
-        java.util.Collections.sort(sortedMZValues);
-
-        final int mzCount = sortedMZValues.size();
-        
-        double[] intensities = new double[scanCount * mzCount];
-        
-        for (int i = 0; i < mzCount; ++i) 
-        {
-            final double mz = sortedMZValues.get(i);
-
-            for (int j = 0; j < scanCount; ++j) 
-            {
-                Map <Double, Double> c = data.get(scanNumbers[j]);
-
-                if (c != null && c.get(mz) != null)
-                    intensities[i * scanCount + j] = c.get(mz);
-            }
-        }
-        
-        return intensities;
+    // Retrieve scan numbers
+    int representativeScan = 0;
+    int[] scanNumbers = new int[chromatogram.length];
+    int count = 0;
+    for (int num : file.getScanNumbers()) {
+      double retTime = file.getScan(num).getRetentionTime();
+      Double intensity = chromatogram.getIntensity(retTime, false);
+      if (intensity != null)
+        scanNumbers[count++] = num;
+      if (retTime == peak.getRetTime())
+        representativeScan = num;
     }
-    
-    public static double[] getIntensityVector(PeakList peakList) 
-    {
-        RawDataFile dataFile = peakList.getRawDataFile(0);
-        
-        final int mzCount = peakList.getNumberOfRows();
-        
-        final int[] scanNumbers = dataFile.getScanNumbers();
-        final int scanCount = scanNumbers.length;
-        
-        double[] result = new double[mzCount * scanCount];
-        
-        for (int i = 0; i < mzCount; ++i)
-        {
-            Feature chromatogram = peakList.getRow(i).getBestPeak();
-            
-            for (int j = 0; j < scanCount; ++j)
-            {
-                final int scanNumber = scanNumbers[j];
-                DataPoint dataPoint = chromatogram.getDataPoint(scanNumber);
-                if (dataPoint != null)
-                    result[i * scanCount + j] = dataPoint.getIntensity();
-            }
-        }
-        
-        return result;
-    }
-    
-    public static double[] getMZVector(RawDataFile dataFile)
-    {
-        Set <Double> setMZValues = new HashSet<> ();
 
-        final int[] scanNumbers = dataFile.getScanNumbers();
+    // Calculate peak area
+    double area = 0.0;
+    for (int i = 1; i < chromatogram.length; ++i) {
+      double base = (chromatogram.xs[i] - chromatogram.xs[i - 1]) * 60d;
+      double height = 0.5 * (chromatogram.ys[i] + chromatogram.ys[i - 1]);
+      area += base * height;
+    }
 
-        for (final int scanNumber : scanNumbers) 
-        {
-            final Scan scan = dataFile.getScan(scanNumber);
+    // Create array of DataPoints
+    DataPoint[] dataPoints = new DataPoint[chromatogram.length];
+    count = 0;
+    for (double intensity : chromatogram.ys)
+      dataPoints[count++] = new SimpleDataPoint(peak.getMZ(), intensity);
 
-            for (final DataPoint p : scan.getDataPoints())
-                setMZValues.add(p.getMZ());
-        }
-        
-        List <Double> sortedMZValues = new ArrayList <> (setMZValues);
-        java.util.Collections.sort(sortedMZValues);
-        
-        double[] mzValues = new double[sortedMZValues.size()];
-        for (int i = 0; i < sortedMZValues.size(); ++i)
-            mzValues[i] = sortedMZValues.get(i);
-        
-        return mzValues;
+    return new SimpleFeature(file, peak.getMZ(), peak.getRetTime(), peak.getIntensity(), area,
+        scanNumbers, dataPoints, Feature.FeatureStatus.ESTIMATED, representativeScan,
+        representativeScan, new int[]{},
+        Range.closed(peak.getFirstRetTime(), peak.getLastRetTime()),
+        Range.closed(peak.getMZ() - 0.01, peak.getMZ() + 0.01),
+        Range.closed(0.0, peak.getIntensity()));
+  }
+
+  @Nonnull
+  public static Feature peakToFeature(@Nonnull RawDataFile file, @Nonnull Peak peak) {
+
+    NavigableMap<Double, Double> chromatogram = peak.getChromatogram();
+
+    double[] retTimes = new double[chromatogram.size()];
+    double[] intensities = new double[chromatogram.size()];
+    int index = 0;
+    for (Entry<Double, Double> e : chromatogram.entrySet()) {
+      retTimes[index] = e.getKey();
+      intensities[index] = e.getValue();
+      ++index;
     }
-    
-    public static double[] getMZVector(PeakList peakList)
-    {   
-        final int mzCount = peakList.getNumberOfRows();
-        
-        double[] result = new double[mzCount];
-        
-        for (int i = 0; i < mzCount; ++i)
-            result[i] = peakList.getRow(i).getAverageMZ();
-        
-        return result;
-    }
-    
-    public static double[] getRetTimeVector(RawDataFile dataFile)
-    {
-        final int[] scanNumbers = dataFile.getScanNumbers();
-        
-        double[] retTimes = new double[scanNumbers.length];
-        
-        for (int i = 0; i < scanNumbers.length; ++i)
-            retTimes[i] = dataFile.getScan(scanNumbers[i]).getRetentionTime();
-        
-        return retTimes;
-    }
-    
-    public static double[] getRetTimeVector(PeakList peakList) {
-        return getRetTimeVector(peakList.getRawDataFile(0));
-    }
+
+    BetterPeak betterPeak = new BetterPeak(
+        peak.getInfo().peakID,
+        new Chromatogram(retTimes, intensities),
+        peak.getInfo());
+
+    return peakToFeature(file, betterPeak);
+  }
 }

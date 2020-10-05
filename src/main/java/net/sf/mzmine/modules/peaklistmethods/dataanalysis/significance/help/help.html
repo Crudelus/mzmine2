@@ -1,0 +1,70 @@
+<html>
+<head>
+    <title>Data analysis - Student's t-test and Fold Change</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+</head>
+
+<body>
+
+<h1>One-way ANOVA test</h1>
+
+<h2>Description</h2>
+<p>
+    This module performs One-way analysis of variance (abbreviated ANOVA) test on the intensities
+    of aligned features and calculates the corresponding p-values.
+</p>
+<p>
+    The ANOVA technique is used to compare mean intensities of two or more groups of raw data files.
+    The groups of raw data files are specified by a user. Then ANOVA tests the null hypothesis that
+    the intensities of aligned features have the same mean values in all groups. The ANOVA produces
+    an F-statistic and the corresponding p-value. If p-value is close to zero (typically less than
+    0.05), then the intensities of aligned features are significantly different in two or more
+    groups.
+</p>
+
+<h2>Example</h2>
+<ol>
+    <li>
+        <b>Set a group parameter for each raw data file.</b> Choose menu "Project -> Set sample
+        parameters". In the window <em>Setup project parameters and values</em>, click button
+        "Add new parameter". In the window <em>Define new project parameter</em>, give a name to
+        the parameter and add its values. Finally, in the window <em>Setup project parameters
+        and values</em>, assign a value to each raw data file.
+
+        <div align="center">
+            <p>
+                <img src="user_parameter.png" alt="User parameters"/>
+            </p>
+        </div>
+    </li>
+    <li>
+        <b>Perform One-way ANOVA test.</b> In the right pane of the main window, select an aligned
+        peak list and choose menu "Peak list methods -> Data analysis -> One-way ANOVA test."
+        In the field <em>Sample parameter</em>, select the name of the parameter that you specified
+        in the previous step, and click button OK.
+
+        <div align="center">
+            <p>
+              <img src="anova_test.png" alt="ANOVA test"/>
+            </p>
+        </div>
+    </li>
+    <li>
+        <b>Export results.</b> In the right pane of the main window, select an aligned peak list
+        and choose menu "Peak list methods -> Export/Import -> Export to CSV file." In the
+        parameters window, check the option "Export quantitation results and other information."
+        The exported CSV file will contain column <em>ANOVA_P_VALUE</em> with the p-values
+        produced by the one-way ANOVA test.
+
+        <div align="center">
+            <p>
+                <img src="export.png" alt="CSV Export"/><br/>
+                <img src="csv_file.png" alt="CSV Export"/>
+            </p>
+        </div>
+    </li>
+</ol>
+
+</body>
+</html>

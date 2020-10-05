@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -127,7 +127,8 @@ public class ADAP3DTask extends AbstractTask {
     MZmineToMSDKRawDataFile msdkRawDataFile = new MZmineToMSDKRawDataFile(dataFile);
     Predicate<MsScan> scanSelectionPredicate =
         scan -> selectedScans.contains(((MZmineToMSDKMsScan) scan).getMzmineScan());
-    msdkADAP3DMethod = new ADAP3DFeatureDetectionMethod(msdkRawDataFile, scanSelectionPredicate, new ADAP3DFeatureDetectionParameters());
+    msdkADAP3DMethod = new ADAP3DFeatureDetectionMethod(msdkRawDataFile, scanSelectionPredicate,
+        new ADAP3DFeatureDetectionParameters());
     List<Feature> features = null;
     try {
       if (isCanceled())
@@ -147,7 +148,7 @@ public class ADAP3DTask extends AbstractTask {
     logger.info("ADAP3D detected " + features.size() + " features in " + dataFile
         + ", converting to MZmine peaklist");
 
-    // Create new MZmine 2 peak list
+    // Create new MZmine 2 feature list
     SimplePeakList newPeakList = new SimplePeakList(dataFile + " " + suffix, dataFile);
 
     int rowId = 1;
