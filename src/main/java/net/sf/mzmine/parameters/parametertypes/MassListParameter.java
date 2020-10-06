@@ -44,11 +44,6 @@ public class MassListParameter implements UserParameter<String, MassListComponen
     this.description = "Please select a mass list name";
   }
 
-  public MassListParameter(String defaultValue) {
-    super();
-    this.value = defaultValue;
-  }
-
   /**
    * @see net.sf.mzmine.data.Parameter#getName()
    */
